@@ -18,10 +18,9 @@ ApiConnector.current(user => {
 });
 
 
-
+const ratesBoard = new RatesBoard();
 // Запрос текущей информации о валюте
 function getCurrentStocks() {
-    const ratesBoard = new RatesBoard();
     ApiConnector.getStocks(stocks => {
         if (stocks.data) {
             ratesBoard.clearTable();
@@ -29,11 +28,10 @@ function getCurrentStocks() {
         }
     });
 };
-
+//Синхронный вызов
+getCurrentStocks();
 //Асинхронный вызов функции о цене
-setInterval(() => {
-    getCurrentStocks();
-}, 6000);
+setInterval(getCurrentStocks, 6000);
 
 
 // Операции с деньгами
@@ -45,10 +43,8 @@ const moneyManager = new MoneyManager();
 moneyManager.addMoneyCallback = data => ApiConnector.addMoney(data, answer => {
     if (answer.success) {
         ProfileWidget.showProfile(answer.data);
-        moneyManager.setMessage(answer.success, 'Успешно');
-    } else {
-        moneyManager.setMessage(answer.success, answer.error);
     }
+    moneyManager.setMessage(answer.success, answer.success ? `Пополнение на сумму ${data.amount} ${data.currency} успешно произведено!` : answer.error);
 });
 
 //Конвертация валюты
@@ -56,10 +52,9 @@ moneyManager.addMoneyCallback = data => ApiConnector.addMoney(data, answer => {
 moneyManager.conversionMoneyCallback = data => ApiConnector.convertMoney(data, (answer) => {
     if (answer.success) {
         ProfileWidget.showProfile(answer.data);
-        moneyManager.setMessage(answer.success, 'Успешно');
-    } else {
-        moneyManager.setMessage(answer.success, answer.error);
     }
+    moneyManager.setMessage(answer.success, answer.success ? (`Конвертация из ${data.fromAmount}  ${data.fromCurrency}  в ${data.targetCurrency} успешно произведено!`) : answer.error);
+
 });
 
 //Перевод валюты 
@@ -67,10 +62,8 @@ moneyManager.conversionMoneyCallback = data => ApiConnector.convertMoney(data, (
 moneyManager.sendMoneyCallback = data => ApiConnector.transferMoney(data, answer => {
     if (answer.success) {
         ProfileWidget.showProfile(answer.data);
-        moneyManager.setMessage(answer.success, 'Успешно');
-    } else {
-        moneyManager.setMessage(answer.success, answer.error);
     }
+    moneyManager.setMessage(answer.success, answer.success ? `Перевод ${data.amount} ${data.currency} пользователю с id ${data.to} успешно произведено!` : answer.error);
 })
 
 
@@ -95,10 +88,9 @@ favoritesWidget.addUserCallback = data => {
         if (answer.success) {
             favoritesWidget.clearTable();
             favoritesWidget.fillTable(answer.data);
-            moneyManager.setMessage(answer.success, 'Успешно');
-        } else {
-            moneyManager.setMessage(answer.success, answer.error);
+            moneyManager.updateUsersList(answer.data);
         }
+        favoritesWidget.setMessage(answer.success, answer.success ? `Ползователь ${data.name} добавлен в адрессную книгу!` : answer.error);
     })
 };
 
@@ -109,9 +101,8 @@ favoritesWidget.removeUserCallback = data => {
         if (answer.success) {
             favoritesWidget.clearTable();
             favoritesWidget.fillTable(answer.data);
-            moneyManager.setMessage(answer.success, 'Успешно');
-        } else {
-            moneyManager.setMessage(answer.success, answer.error);
+            moneyManager.updateUsersList(answer.data);
         }
+        favoritesWidget.setMessage(answer.success, answer.success ? `Ползователь успешно удален из адрессной книги!` : answer.error);
     })
 }
